@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "name": "distance-learning-lp-mentor-uchiru",
+  "type": "static",
+  "alias": [
+    "mentor.uchi.ru"
+  ],
+  "static": {
+    "directoryListing": false,
+    "trailingSlash": true
+  },
+  "scale": {
+    "bru1": {
+      "min": 1,
+      "max": "auto"
+    }
+  }
+}
