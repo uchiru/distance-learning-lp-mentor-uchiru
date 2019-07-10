@@ -144,7 +144,7 @@
         var secondsLeft = Math.max(totalSeconds - seconds, 0)
         document.getElementsByClassName("PageSuccess-textSeconds")[0].innerHTML = "" + secondsLeft + " секунд"
         if (secondsLeft > 0) {
-          timeoutId = setTimeout(func, 1)
+          timeoutId = setTimeout(func, 500)
         } else {
           console.log('timer end')
           redirectToSchedule()
