@@ -35,7 +35,7 @@
       height: 100%;
     }
 
-    section span {
+    .PageSuccess-title {
       font-size: 24px;
       font-weight: 500;
       display: block;
@@ -58,15 +58,101 @@
 <body>
   <main>
     <section>
-      <span>Оплата произведена успешно</span>
-      <p style="margin-left: 20px; margin-right: 20px; text-align: center;">Вы будете перенаправлены на страницу с&nbsp;выбором расписания через 10 секунд</p>
+      <span class="PageSuccess-title">Оплата произведена успешно</span>
+      <p class="PageSuccess-text" style="margin-left: 20px; margin-right: 20px; text-align: center;">Вы будете перенаправлены на страницу с&nbsp;выбором расписания через <span class="PageSuccess-textSeconds">10 секунд</span></p>
     </section>
     <section>
       <p>
-        <a href="/">Перейти к расписанию</a>
+        <a class="PageSuccess-scheduleLink" href="/">Перейти к расписанию</a>
       </p>
     </section>
   </main>
+  <script>
+    document.addEventListener("DOMContentLoaded", function(event) {
+      var saveUTM = function() {
+        try {
+          var APPPAGE_URL = window.location.href
+            , APPPAGE_QUERY = ''
+            , APPPAGE_UTM = '';
+          if (APPPAGE_URL.toLowerCase().indexOf('utm_') !== -1) {
+            APPPAGE_URL = APPPAGE_URL.toLowerCase();
+            APPPAGE_QUERY = (APPPAGE_URL.split("?")[1] || "").split("#")[0];
+            if (typeof (APPPAGE_QUERY) == 'string') {
+              var arPair, i, arParams = APPPAGE_QUERY.split('&');
+              for (i in arParams) {
+                arPair = arParams[i].split('=');
+                if (arPair[0].substring(0, 4) == 'utm_') {
+                  APPPAGE_UTM = APPPAGE_UTM + arParams[i] + '|||'
+                }
+              }
+              if (APPPAGE_UTM.length > 0) {
+                var date = new Date()
+                date.setDate(date.getDate() + 30);
+                document.cookie = "APPUTM=" + encodeURIComponent(APPPAGE_UTM) + "; path=/; expires=" + date.toUTCString()
+              }
+            }
+          }
+        } catch (err) {}
+      }
+      saveUTM()
+    })
+    var redirectToSchedule = function() {
+      console.log('redirecting')
+      window.location = prepareUrl('https://calendly.com/onlineschool/mentor40min')
+    }
+    var prepareUrl = function(url) {
+      var curUrl = new URL(window.location.href);
+      var params = curUrl.search.slice(1).split("&").map(function(o) {return o.split("=")});
+      var obj = {}
+      for(var i in params) {
+        var key = params[i][0];
+        var content = params[i][1];
+        if (content != undefined && content != "") {
+          obj[key] = decodeURIComponent(content)
+        }
+      }
+      console.log("obj", obj)
+
+      var hasUtm = Object.keys(obj).some(function (o) {return o.substring(0, 4) == "utm_"})
+
+      console.log("hasUtm", hasUtm)
+
+      if (!hasUtm) {
+        var utmFromCookies = (Cookies.get("APPUTM") || "").split("|||").slice(0, -1).map(function(o) {return o.split("=")})
+        for (var i in utmFromCookies) {
+          var pair = utmFromCookies[i]
+          obj[pair[0]] = decodeURIComponent(pair[1])
+        }
+      }
+
+      console.log("obj", obj)
+      var search = Object.keys(obj).map(function(key) {return "" + key + "=" + encodeURIComponent(obj[key])}).join("&")
+      return url + (search ? "?" + search : "")
+    }
+    document.getElementsByClassName("PageSuccess-scheduleLink")[0].addEventListener('click', function (e) {
+      e.preventDefault()
+      console.log('click')
+      redirectToSchedule()
+    })
+    ;(function() {
+      var timeoutId = null
+      var totalSeconds = 10
+      var start = new Date()
+      var func = function() {
+        var current = new Date()
+        var seconds = Math.floor((current.getTime() - start.getTime()) / 1000)
+        var secondsLeft = Math.max(totalSeconds - seconds, 0)
+        document.getElementsByClassName("PageSuccess-textSeconds")[0].innerHTML = "" + secondsLeft + " секунд"
+        if (secondsLeft > 0) {
+          timeoutId = setTimeout(func, 1)
+        } else {
+          console.log('timer end')
+          redirectToSchedule()
+        }
+      }
+      func()
+    }())
+  </script>
 </body>
 
 </html>
